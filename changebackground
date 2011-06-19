@@ -3,7 +3,7 @@
 	require_once("changebackground_config.php");
 	require_once("changebackground_backends.php");
 
-	$files = glob($imagedir . "*.{jpg,png}", GLOB_BRACE);
+	$files = glob(IMAGEDIR . "*.{jpg,png}", GLOB_BRACE);
 	if ($files === false) {
 		exit("Could not open directory");
 	}
@@ -12,7 +12,7 @@
 	}
 
 	$random = array();
-	while (count($random) < ($workspaces * $desktops)) {
+	while (count($random) < (WORKSPACES * DESKTOPS)) {
 		$random[] = rand(0, count($files) - 1);
 		$random = array_unique($random, SORT_NUMERIC);
 	}
@@ -22,36 +22,36 @@
 	printf("Found %d images in directory\n", count($files));
 	printf("Generated %d random numbers: %s\n", count($random), implode(", ", $random));
 
-	for ($i = 0; $i < $workspaces; $i++) {
-		if (file_exists("/tmp/background_$i.$final_ext") && !unlink ("/tmp/background_$i.$final_ext")) {
+	for ($i = 0; $i < WORKSPACES; $i++) {
+		if (file_exists("/tmp/background_$i." . FINALEXT) && !unlink ("/tmp/background_$i." . FINALEXT)) {
 			exit("Could not remove old background $i");
 		}
 
 		$images = array();
-		for ($j = 0; $j < $desktops; $j++) {
-			$images[] = $files[$random[$j + ($i * $desktops)]];
+		for ($j = 0; $j < DESKTOPS; $j++) {
+			$images[] = $files[$random[$j + ($i * DESKTOPS)]];
 		}
 
-		$filename = "/tmp/background_$i.$final_ext";
+		$filename = "/tmp/background_$i." . FINALEXT;
 		$out[] = $filename;
 
 		printf("Generating %s\n", $filename);
 
-		switch ($mode) {
+		switch (MONTAGEMODE) {
 			case "crop":
 				$new_images = array();
 				for ($z = 0; $z < count($images); $z++) {
-					if (file_exists("/tmp/temp_$z.$temp_ext") && !unlink ("/tmp/temp_$z.$temp_ext")) {
+					if (file_exists("/tmp/temp_$z." . TEMPEXT) && !unlink ("/tmp/temp_$z." . TEMPEXT)) {
 						exit("Could not remove old temp background $z");
 					}
 
-					GmagickConsole::convert($geometry, $images[$z], "/tmp/temp_$z.$temp_ext");
-					$new_images[] = "/tmp/temp_$z.$temp_ext";
+					call_user_func(TEMPMETHOD . "::convert", GEOMETRY, $images[$z], "/tmp/temp_$z." . TEMPEXT);
+					$new_images[] = "/tmp/temp_$z." . TEMPEXT;
 				}
 				$images = $new_images;
 			case "scale":
 			default:
-				ImagickConsole::montage($geometry, $tiles, $images, $filename);
+				call_user_func(FINALMETHOD . "::montage", GEOMETRY, TILES, $images, $filename);
 				break;
 		}
 

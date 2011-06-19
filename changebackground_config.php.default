@@ -1,13 +1,13 @@
 <?php
-	$imagedir = "/home/chaos/Dropbox/Photos/Wallpapers/";
-	$geometry = "1280x800";
-	$tiles = "1x1";
-	$workspaces = 4;
-	$desktops = 1;
-	$mode = "crop"; // or scale
-	$temp_ext = "jpg";
-	$temp_method = "GMagickConsole";
-	$final_ext = "jpg";
-	$final_method = "IMagickConsole";
+	define("IMAGEDIR", ""); // With trailing slashes
+	define("GEOMETRY", "1280x800");
+	define("TILES", "1x1");
+	define("WORKSPACES", 4);
+	define("DESKTOPS", 1);
+	define("MONTAGEMODE", "crop"); // or scale
+	define("TEMPEXT", "jpg");
+	define("TEMPMETHOD", "GMagickConsole");
+	define("FINALEXT", "jpg");
+	define("FINALMETHOD", "IMagickConsole");
 
 ?>

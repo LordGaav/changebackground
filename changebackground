@@ -60,9 +60,9 @@
 
 	printf("Executing GConf Compiz hack\n");
 	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image \"[" . implode("\",\"", $out) . "]\" --type list --list-type string 2>&1");
-	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[1,1,1,1]\" --type list --list-type int 1>&1");
+	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 1)) . "]\" --type list --list-type int 1>&1");
 	sleep(2);
-	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[2,2,2,2]\" --type list --list-type int 2>&1");
+	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 2)) . "]\" --type list --list-type int 2>&1");
 	sleep(2);
 	printf("Done @ %s\n", date("H:i:s"));
 ?>

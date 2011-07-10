@@ -3,24 +3,46 @@
 	require_once("changebackground_config.php");
 	require_once("changebackground_backends.php");
 
-	$files = glob(IMAGEDIR . "*.{jpg,png}", GLOB_BRACE);
+	$files = glob(IMAGEDIR . "*.{jpg,png,gif,jpeg}", GLOB_BRACE);
 	if ($files === false) {
 		exit("Could not open directory");
 	}
 	if (empty($files)) {
 		exit("No image files in directory");
 	}
+	$skip = array();
+	if (($fp = fopen("random_cache", "c+")) !== false) {
+		$skip = json_decode(fread($fp, (filesize("random_cache")?:0)));
+		if ($skip === null || count($skip) >= (count($files) - (WORKSPACES * DESKTOPS))) {
+			$skip = array();
+		}
+	} else {
+		exit("Could not open random cache file");
+	}
 
 	$random = array();
 	while (count($random) < (WORKSPACES * DESKTOPS)) {
-		$random[] = rand(0, count($files) - 1);
+		$r = rand(0, count($files) - 1);
+		if (in_array($r, $skip)) {
+			continue;
+		}
+		$random[] = $r;
+		$skip[] = $r;
 		$random = array_unique($random, SORT_NUMERIC);
 	}
 	$random = array_values($random);
+	$skip = array_values($skip);
+
+	ftruncate($fp, 0);
+	rewind($fp);
+	fwrite($fp, json_encode($skip));
+	fclose($fp);
+
 	$out = array();
 
 	printf("Found %d images in directory\n", count($files));
 	printf("Generated %d random numbers: %s\n", count($random), implode(", ", $random));
+	printf("There were %d numbers in the skip cache\n", count($skip));
 
 	for ($i = 0; $i < WORKSPACES; $i++) {
 		if (file_exists("/tmp/background_$i." . FINALEXT) && !unlink ("/tmp/background_$i." . FINALEXT)) {

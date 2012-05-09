@@ -3,6 +3,10 @@
 	require_once("changebackground_config.php");
 	require_once("changebackground_backends.php");
 
+	if (!is_dir(TEMPDIR) && (!mkdir(TEMPDIR) || glob(TEMPDIR . "*.{jpg,png,gif,jpeg}", GLOB_BRACE) === false)) {
+		exit("Could not open tmpdir");
+	}
+
 	$files = glob(IMAGEDIR . "*.{jpg,png,gif,jpeg}", GLOB_BRACE);
 	if ($files === false) {
 		exit("Could not open directory");
@@ -11,8 +15,8 @@
 		exit("No image files in directory");
 	}
 	$skip = array();
-	if (($fp = fopen("random_cache", "c+")) !== false) {
-		$skip = json_decode(fread($fp, (filesize("random_cache")?:0)));
+	if (($fp = fopen(TEMPDIR . "random_cache", "c+")) !== false) {
+		$skip = json_decode(fread($fp, (filesize(TEMPDIR . "random_cache")?:0)));
 		if ($skip === null || count($skip) >= (count($files) - (WORKSPACES * DESKTOPS))) {
 			$skip = array();
 		}
@@ -45,16 +49,12 @@
 	printf("There were %d numbers in the skip cache\n", count($skip));
 
 	for ($i = 0; $i < WORKSPACES; $i++) {
-		if (file_exists("/tmp/background_$i." . FINALEXT) && !unlink ("/tmp/background_$i." . FINALEXT)) {
-			exit("Could not remove old background $i");
-		}
-
 		$images = array();
 		for ($j = 0; $j < DESKTOPS; $j++) {
 			$images[] = $files[$random[$j + ($i * DESKTOPS)]];
 		}
 
-		$filename = "/tmp/background_$i." . FINALEXT;
+		$filename = TEMPDIR . "background_$i." . FINALEXT;
 		$out[] = $filename;
 
 		printf("Generating %s\n", $filename);
@@ -63,12 +63,11 @@
 			case "crop":
 				$new_images = array();
 				for ($z = 0; $z < count($images); $z++) {
-					if (file_exists("/tmp/temp_$z." . TEMPEXT) && !unlink ("/tmp/temp_$z." . TEMPEXT)) {
-						exit("Could not remove old temp background $z");
+					$tmpfilename = sprintf("%s%s-%s-%s.%s", TEMPDIR, "TEMP-", basename($images[$z]), GEOMETRY, TEMPEXT);
+					if (!file_exists($tmpfilename)) {
+						call_user_func(TEMPMETHOD . "::convert", GEOMETRY, $images[$z], $tmpfilename);
 					}
-
-					call_user_func(TEMPMETHOD . "::convert", GEOMETRY, $images[$z], "/tmp/temp_$z." . TEMPEXT);
-					$new_images[] = "/tmp/temp_$z." . TEMPEXT;
+					$new_images[] = $tmpfilename;
 				}
 				$images = $new_images;
 			case "scale":

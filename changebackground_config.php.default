@@ -1,5 +1,6 @@
 <?php
 	define("IMAGEDIR", ""); // With trailing slashes
+	define("TEMPDIR", "/tmp/wallpapers/"); // With trailing slashes
 	define("GEOMETRY", "1280x800");
 	define("TILES", "1x1");
 	define("WORKSPACES", 4);

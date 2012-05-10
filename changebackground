@@ -1,0 +1,68 @@
+#!/usr/bin/env php
+<?php
+	require_once("changebackground_config.php");
+	require_once("changebackground_backends.php");
+
+	$files = glob($imagedir . "*.{jpg,png}", GLOB_BRACE);
+	if ($files === false) {
+		exit("Could not open directory");
+	}
+	if (empty($files)) {
+		exit("No image files in directory");
+	}
+
+	$random = array();
+	while (count($random) < ($workspaces * $desktops)) {
+		$random[] = rand(0, count($files) - 1);
+		$random = array_unique($random, SORT_NUMERIC);
+	}
+	$random = array_values($random);
+	$out = array();
+
+	printf("Found %d images in directory\n", count($files));
+	printf("Generated %d random numbers: %s\n", count($random), implode(", ", $random));
+
+	for ($i = 0; $i < $workspaces; $i++) {
+		if (file_exists("/tmp/background_$i.$final_ext") && !unlink ("/tmp/background_$i.$final_ext")) {
+			exit("Could not remove old background $i");
+		}
+
+		$images = array();
+		for ($j = 0; $j < $desktops; $j++) {
+			$images[] = $files[$random[$j + ($i * $desktops)]];
+		}
+
+		$filename = "/tmp/background_$i.$final_ext";
+		$out[] = $filename;
+
+		printf("Generating %s\n", $filename);
+
+		switch ($mode) {
+			case "crop":
+				$new_images = array();
+				for ($z = 0; $z < count($images); $z++) {
+					if (file_exists("/tmp/temp_$z.$temp_ext") && !unlink ("/tmp/temp_$z.$temp_ext")) {
+						exit("Could not remove old temp background $z");
+					}
+
+					GmagickConsole::convert($geometry, $images[$z], "/tmp/temp_$z.$temp_ext");
+					$new_images[] = "/tmp/temp_$z.$temp_ext";
+				}
+				$images = $new_images;
+			case "scale":
+			default:
+				ImagickConsole::montage($geometry, $tiles, $images, $filename);
+				break;
+		}
+
+		printf("Generated %s\n", $filename);
+	}
+
+	printf("Executing GConf Compiz hack\n");
+	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image \"[" . implode("\",\"", $out) . "]\" --type list --list-type string 2>&1");
+	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[1,1,1,1]\" --type list --list-type int 1>&1");
+	sleep(2);
+	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[2,2,2,2]\" --type list --list-type int 2>&1");
+	sleep(2);
+	printf("Done @ %s\n", date("H:i:s"));
+?>

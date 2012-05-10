@@ -1,0 +1,13 @@
+<?php
+	$imagedir = "/home/chaos/Dropbox/Photos/Wallpapers/";
+	$geometry = "1280x800";
+	$tiles = "1x1";
+	$workspaces = 4;
+	$desktops = 1;
+	$mode = "crop"; // or scale
+	$temp_ext = "jpg";
+	$temp_method = "GMagickConsole";
+	$final_ext = "jpg";
+	$final_method = "IMagickConsole";
+
+?>

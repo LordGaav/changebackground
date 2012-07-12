@@ -15,10 +15,23 @@
 		exit("No image files in directory");
 	}
 	$skip = array();
+	$previous = array();
+	// Open file
 	if (($fp = fopen(TEMPDIR . "random_cache", "c+")) !== false) {
-		$skip = json_decode(fread($fp, (filesize(TEMPDIR . "random_cache")?:0)));
-		if ($skip === null || count($skip) >= (count($files) - (WORKSPACES * DESKTOPS))) {
-			$skip = array();
+		// Decode contents
+		$skip = json_decode(fread($fp, (filesize(TEMPDIR . "random_cache")?:0)), true);
+		// If file was not empty
+		if ($skip !== null) {
+			// Check if data is still good and if we don't have too many files in the skip cache
+			if (isset($skip['previous']) && 
+				count($files) == $skip['total'] && 
+				sha1(implode("|", $files)) == $skip['hash'] &&
+				count($skip['previous']) < (count($files) - (WORKSPACES * DESKTOPS))) {
+				$previous = $skip['previous'];
+			// Reset data otherwise
+			} else {
+				$previous = array();
+			}
 		}
 	} else {
 		exit("Could not open random cache file");
@@ -27,15 +40,18 @@
 	$random = array();
 	while (count($random) < (WORKSPACES * DESKTOPS)) {
 		$r = rand(0, count($files) - 1);
-		if (in_array($r, $skip)) {
+		if (in_array($files[$r], $previous)) {
 			continue;
 		}
-		$random[] = $r;
-		$skip[] = $r;
-		$random = array_unique($random, SORT_NUMERIC);
+		$random[] = $files[$r];
+		$previous[] = $files[$r];
+		$random = array_unique($random);
 	}
 	$random = array_values($random);
-	$skip = array_values($skip);
+	$skip = array();
+	$skip['previous'] = array_values($previous);
+	$skip['total'] = count($files);
+	$skip['hash'] = sha1(implode("|", $files));
 
 	ftruncate($fp, 0);
 	rewind($fp);
@@ -45,13 +61,13 @@
 	$out = array();
 
 	printf("Found %d images in directory\n", count($files));
-	printf("Generated %d random numbers: %s\n", count($random), implode(", ", $random));
-	printf("There were %d numbers in the skip cache\n", count($skip));
+	printf("Generated %d random files: %s\n", count($random), implode(", ", $random));
+	printf("There are %d files in the skip cache\n", count($skip['previous']));
 
 	for ($i = 0; $i < WORKSPACES; $i++) {
 		$images = array();
 		for ($j = 0; $j < DESKTOPS; $j++) {
-			$images[] = $files[$random[$j + ($i * DESKTOPS)]];
+			$images[] = $random[$j + ($i * DESKTOPS)];
 		}
 
 		$filename = TEMPDIR . "background_$i." . FINALEXT;

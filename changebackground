@@ -58,6 +58,8 @@
 	fwrite($fp, json_encode($skip));
 	fclose($fp);
 
+	shuffle($random);
+
 	$out = array();
 
 	printf("Found %d images in directory\n", count($files));

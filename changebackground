@@ -97,11 +97,23 @@
 		printf("Generated %s\n", $filename);
 	}
 
-	printf("Executing GConf Compiz hack\n");
-	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image \"[" . implode("\",\"", $out) . "]\" --type list --list-type string 2>&1");
-	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 1)) . "]\" --type list --list-type int 1>&1");
-	sleep(2);
-	system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 2)) . "]\" --type list --list-type int 2>&1");
-	sleep(2);
+	printf("Detecting Ubuntu version\n");
+	$version = system("lsb_release -a 2>/dev/null | grep Description | cut -f2", $retval);
+
+	if ($version == "Ubuntu 12.10" && $retval == 0) {
+		printf("Executing DConf Compiz hack\n");
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image \"['" . implode("','", $out) . "']\"");
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image-pos \"[" . implode(",", array_fill(0, WORKSPACES, 1)) . "]\"");
+		sleep(2);
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image-pos \"[" . implode(",", array_fill(0, WORKSPACES, 2)) . "]\"");
+		sleep(2);
+	} else {
+		printf("Executing GConf Compiz hack\n");
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image \"[" . implode("\",\"", $out) . "]\" --type list --list-type string 2>&1");
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 1)) . "]\" --type list --list-type int 1>&1");
+		sleep(2);
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 2)) . "]\" --type list --list-type int 2>&1");
+		sleep(2);
+	}
 	printf("Done @ %s\n", date("H:i:s"));
 ?>

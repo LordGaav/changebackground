@@ -101,15 +101,21 @@
 	$version = system("lsb_release -a 2>/dev/null | grep Description | cut -f2", $retval);
 
 	if ($version == "Ubuntu 12.10" && $retval == 0) {
-		printf("Executing DConf Compiz hack\n");
+		printf("Update Compiz DConf settings\n");
 		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image \"['" . implode("','", $out) . "']\"");
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-color1 \"['" . implode("','", array_fill(0, WORKSPACES, "#000000ff")) . "']\"");
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-color2 \"['" . implode("','", array_fill(0, WORKSPACES, "#000000ff")) . "']\"");
+		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-fill-type \"[" . implode(",", array_fill(0, WORKSPACES, 0)) . "]\"");
 		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image-pos \"[" . implode(",", array_fill(0, WORKSPACES, 1)) . "]\"");
 		sleep(2);
 		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image-pos \"[" . implode(",", array_fill(0, WORKSPACES, 2)) . "]\"");
 		sleep(2);
 	} else {
-		printf("Executing GConf Compiz hack\n");
+		printf("Update Compiz GConf settings\n");
 		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image \"[" . implode("\",\"", $out) . "]\" --type list --list-type string 2>&1");
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_color1 \"[" . implode("\",\"", array_fill(0, WORKSPACES, "#000000ff")) . "]\" --type list --list-type int 1>&1");
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_color2 \"[" . implode("\",\"", array_fill(0, WORKSPACES, "#000000ff")) . "]\" --type list --list-type int 1>&1");
+		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_fill_type \"[" . implode("\",\"", array_fill(0, WORKSPACES, 0)) . "]\" --type list --list-type int 1>&1");
 		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 1)) . "]\" --type list --list-type int 1>&1");
 		sleep(2);
 		system("gconftool --set /apps/compiz-1/plugins/wallpaper/screen0/options/bg_image_pos \"[" . implode("\",\"", array_fill(0, WORKSPACES, 2)) . "]\" --type list --list-type int 2>&1");

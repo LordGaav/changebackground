@@ -100,7 +100,7 @@
 	printf("Detecting Ubuntu version\n");
 	$version = system("lsb_release -a 2>/dev/null | grep Description | cut -f2", $retval);
 
-	if (($version == "Ubuntu 12.10" || $version == "Ubuntu 13.04") && $retval == 0) {
+	if (($version == "Ubuntu 12.10" || $version == "Ubuntu 13.04" || $version == "Ubuntu 13.10") && $retval == 0) {
 		printf("Update Compiz DConf settings\n");
 		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-image \"['" . implode("','", $out) . "']\"");
 		system("dconf write /org/compiz/profiles/unity/plugins/wallpaper/bg-color1 \"['" . implode("','", array_fill(0, WORKSPACES, "#000000ff")) . "']\"");
